@@ -1,4 +1,3 @@
-// src/pages/auth/Register.jsx
 import React, { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { setDoc, doc } from "firebase/firestore";
