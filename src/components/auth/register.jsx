@@ -1,4 +1,3 @@
-// src/pages/auth/Register.jsx
 import React, { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { setDoc, doc } from "firebase/firestore";
@@ -10,7 +9,7 @@ function Register({ onSwitch }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate(); // Usamos el hook para la redirección
+  const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -32,9 +31,8 @@ function Register({ onSwitch }) {
       Swal.fire("Cuenta creada", "Tu cuenta ha sido registrada", "success");
       
       // Redirigimos al usuario al dashboard después del registro exitoso
-      navigate("/dashboard"); // Cambia la ruta según tu estructura de navegación
+      navigate("/");
     } catch (error) {
-      // Manejo de errores detallado
       let errorMessage = "Ocurrió un error. Intenta nuevamente más tarde.";
       if (error.code === "auth/email-already-in-use") {
         errorMessage = "Este correo electrónico ya está registrado.";

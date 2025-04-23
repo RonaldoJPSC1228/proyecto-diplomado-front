@@ -1,4 +1,3 @@
-// src/pages/auth/Auth.jsx
 import React from "react";
 import Login from "./login";
 import Register from "./register";
