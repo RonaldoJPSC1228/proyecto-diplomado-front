@@ -115,7 +115,7 @@ const CreateProduct = () => {
           >
             <option value={1}>Activo</option>
             <option value={0}>Inactivo</option>
-            <option value={2}>Eliminado</option>
+            {/* <option value={2}>Eliminado</option> */}
           </select>
         </div>
         <button type="submit" className="btn btn-primary">
