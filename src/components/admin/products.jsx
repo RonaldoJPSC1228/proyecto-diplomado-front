@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 const Products = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -98,18 +99,32 @@ const Products = () => {
       minimumFractionDigits: 0,
     }).format(Number(value));
 
-  if (loading) return 
-  <div>   
-    <p>Cargando productos...</p>;
-  </div>
+  const itemsFiltrados = items.filter((item) =>
+    item.nombre.toLowerCase().includes(search.toLowerCase())
+  );
+
+  if (loading) return (
+    <div>
+      <p>Cargando productos...</p>
+    </div>
+  );
 
   return (
     <div className="container justify-content-center mt-4">
       <h2>Productos Disponibles</h2>
 
-      <button className="btn btn-primary mb-3" onClick={handleCreateProduct}>
-        Crear Producto <i className="fas fa-add"></i>
-      </button>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <input
+          type="text"
+          className="form-control w-50"
+          placeholder="Buscar producto..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <button className="btn btn-primary ms-3" onClick={handleCreateProduct}>
+          Crear Producto <i className="fas fa-add"></i>
+        </button>
+      </div>
 
       <table className="table">
         <thead>
@@ -126,7 +141,7 @@ const Products = () => {
           </tr>
         </thead>
         <tbody>
-          {items.map((item) => {
+          {itemsFiltrados.map((item) => {
             const precioConDescuento = item.descuento
               ? item.precio - item.precio * (item.descuento / 100)
               : item.precio;

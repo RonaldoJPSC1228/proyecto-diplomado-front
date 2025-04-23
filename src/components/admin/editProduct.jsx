@@ -141,8 +141,8 @@ const EditProduct = () => {
             value={product.estado || 1}
             onChange={handleChange}
           >
-            <option value={1}>Activo</option>
             <option value={0}>Inactivo</option>
+            <option value={1}>Activo</option>
             <option value={2}>Eliminado</option>
           </select>
         </div>
