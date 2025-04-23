@@ -75,9 +75,14 @@ function Navbar() {
 
             {/* Solo para admins */}
             {role === "admin" && (
-              <li className="nav-item">
-                <Link className="nav-link" to="/dashboard">Dashboard <i className="fas fa-cogs"></i></Link>
-              </li>
+              <>
+                <li className="nav-item">
+                  <Link className="nav-link" to="/dashboard">Dashboard <i className="fas fa-cogs"></i></Link>
+                </li>
+                <li className="nav-item">
+                  <Link className="nav-link" to="/products">Productos <i className="fas fa-box"></i></Link>
+                </li>
+              </>
             )}
 
             {/* Ítems comunes */}
