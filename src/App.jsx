@@ -23,6 +23,7 @@ import Cart from "./pages/cart";
 
 import NotFound from "./pages/notFound";
 import EditProduct from "./components/admin/editProduct";
+import Tienda from './pages/tienda';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
             <Route path="/" element={<Home />} /> {/* Muestra los productos destacados y normales */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+        <Route path="/tienda" element={<Tienda />} />
 
             {/* Admin Routes */}
             <Route
