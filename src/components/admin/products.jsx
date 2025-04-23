@@ -69,7 +69,39 @@ const Products = () => {
     }
   };
 
-  if (loading) return <p>Cargando productos...</p>;
+  const handleToggleFeatured = async (id, isFeatured) => {
+    const productRef = doc(db, "items", id);
+    try {
+      await updateDoc(productRef, { destacado: !isFeatured });
+
+      setItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === id ? { ...item, destacado: !isFeatured } : item
+        )
+      );
+
+      Swal.fire(
+        isFeatured ? "Destacado quitado" : "Producto destacado",
+        `El producto ha sido ${isFeatured ? "desmarcado como destacado" : "marcado como destacado"}`,
+        "success"
+      );
+    } catch (error) {
+      console.error("Error al actualizar el estado de destacado:", error);
+      Swal.fire("Error", "Hubo un problema al actualizar el producto.", "error");
+    }
+  };
+
+  const formatPrice = (value) =>
+    new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+    }).format(Number(value));
+
+  if (loading) return 
+  <div>   
+    <p>Cargando productos...</p>;
+  </div>
 
   return (
     <div className="container justify-content-center mt-4">
@@ -85,50 +117,71 @@ const Products = () => {
             <th>Nombre</th>
             <th>Descripción</th>
             <th>Precio</th>
+            <th>P. Desct</th>
             <th>Categoría</th>
             <th>Descuento</th>
+            <th>Destacado</th>
             <th>Estado</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {items.map((item) => (
-            <tr key={item.id}>
-              <td>{item.nombre}</td>
-              <td>{item.descripcion}</td>
-              <td>${item.precio.toLocaleString('es-CO', { minimumFractionDigits: 2 })}</td>
-              <td>{item.categoria}</td>
-              <td>{item.descuento ? `${item.descuento}%` : "N/A"}</td>
-              <td>
-                {item.estado === 1
-                  ? "Activo"
-                  : item.estado === 0
-                  ? "Inactivo"
-                  : "Eliminado"}
-              </td>
-              <td className="d-flex gap-2">
-                <button
-                  className="btn btn-info"
-                  onClick={() => handleViewDetails(item.id)}
-                >
-                  <i className="fas fa-eye"></i>
-                </button>
-                <button
-                  className="btn btn-warning"
-                  onClick={() => navigate(`/products/${item.id}/edit`)}
-                >
-                  <i className="fas fa-edit"></i>
-                </button>
+          {items.map((item) => {
+            const precioConDescuento = item.descuento
+              ? item.precio - item.precio * (item.descuento / 100)
+              : item.precio;
 
-                <button
-                  className="btn btn-danger"
-                  onClick={() => handleDeleteProduct(item.id)}
-                >
-                  <i className="fas fa-trash"></i>
-                </button>
-              </td>
-            </tr>
-          ))}
+            return (
+              <tr key={item.id}>
+                <td>{item.nombre}</td>
+                <td>{item.descripcion}</td>
+                <td>{formatPrice(item.precio)}</td>
+                <td>{formatPrice(precioConDescuento)}</td>
+                <td>{item.categoria}</td>
+                <td>{item.descuento ? `${item.descuento}%` : "N/A"}</td>
+                <td>
+                  <button
+                    className="btn btn-link"
+                    onClick={() => handleToggleFeatured(item.id, item.destacado)}
+                  >
+                    <i
+                      className={`${
+                        item.destacado ? "fas fa-heart" : "far fa-heart"
+                      }`}
+                      style={{ color: item.destacado ? "red" : "gray" }}
+                    ></i>
+                  </button>
+                </td>
+                <td>
+                  {item.estado === 1
+                    ? "Activo"
+                    : item.estado === 0
+                    ? "Inactivo"
+                    : "Eliminado"}
+                </td>
+                <td className="d-flex gap-2">
+                  <button
+                    className="btn btn-info"
+                    onClick={() => handleViewDetails(item.id)}
+                  >
+                    <i className="fas fa-eye"></i>
+                  </button>
+                  <button
+                    className="btn btn-warning"
+                    onClick={() => navigate(`/products/${item.id}/edit`)}
+                  >
+                    <i className="fas fa-edit"></i>
+                  </button>
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => handleDeleteProduct(item.id)}
+                  >
+                    <i className="fas fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

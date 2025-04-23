@@ -8,25 +8,47 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from "firebase/auth"; // Para manejar autenticación
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function Home() {
   const [productos, setProductos] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false); // NUEVO: Estado para rol admin
 
   useEffect(() => {
-    // Verificar si el usuario está autenticado
     const auth = getAuth();
-    onAuthStateChanged(auth, (user) => {
-      setIsAuthenticated(user ? true : false); // Si hay un usuario, está autenticado
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setIsAuthenticated(true);
+
+        try {
+          const userQuery = query(
+            collection(db, "users"),
+            where("uid", "==", user.uid)
+          );
+          const userDocs = await getDocs(userQuery);
+
+          if (!userDocs.empty) {
+            const userData = userDocs.docs[0].data();
+            setIsAdmin(userData.rol === "admin");
+          } else {
+            setIsAdmin(false);
+          }
+        } catch (error) {
+          console.error("Error verificando rol:", error);
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAuthenticated(false);
+        setIsAdmin(false);
+      }
     });
   }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
       const productosCol = collection(db, "items");
-      // Filtrar productos con estado igual a 1 (activos)
       const q = query(productosCol, where("estado", "==", 1));
       const productosSnapshot = await getDocs(q);
       const productosList = productosSnapshot.docs.map((doc) => ({
@@ -41,18 +63,15 @@ function Home() {
     fetchProducts();
   }, []);
 
-  // Función para alternar el estado de 'destacado' en Firestore y en el estado local
   const toggleDestacado = async (id) => {
-    const productoRef = doc(db, "items", id); // Referencia al producto en Firestore
+    const productoRef = doc(db, "items", id);
     const producto = productos.find((p) => p.id === id);
 
     try {
-      // Actualizar el estado de 'destacado' en Firestore
       await updateDoc(productoRef, {
-        destacado: !producto.destacado, // Alternar el valor de 'destacado'
+        destacado: !producto.destacado,
       });
 
-      // Actualizar el estado local
       setProductos((prev) =>
         prev.map((p) => (p.id === id ? { ...p, destacado: !p.destacado } : p))
       );
@@ -61,13 +80,9 @@ function Home() {
     }
   };
 
-  // Filtrar los productos destacados
   const productosDestacados = productos.filter((p) => p.destacado);
-
-  // Filtrar productos sin destacar
   const productosNoDestacados = productos.filter((p) => !p.destacado);
 
-  // Función para renderizar las secciones de productos
   const renderSeccion = (titulo, productosFiltrados, bgColor) => (
     <div className={`py-5 ${bgColor}`}>
       <div className="container">
@@ -89,7 +104,7 @@ function Home() {
                   alt={producto.nombre}
                   style={{ height: "180px", objectFit: "cover" }}
                 />
-                {producto.descuento && (
+                {producto.descuento > 0 && (
                   <div className="position-absolute top-0 end-0 bg-danger text-white p-1 px-2 rounded-bottom-start small fw-bold">
                     -{producto.descuento}%
                   </div>
@@ -138,7 +153,9 @@ function Home() {
                   >
                     Comprar por WhatsApp
                   </a>
-                  {isAuthenticated && (
+
+                  {/* Solo ADMIN puede ver este botón */}
+                  {isAuthenticated && isAdmin && (
                     <button
                       onClick={() => toggleDestacado(producto.id)}
                       className={`btn btn-sm ${
@@ -163,23 +180,9 @@ function Home() {
 
   return (
     <div className="mt-5 pt-4" style={{ backgroundColor: "#f5f5f5" }}>
-      {/* Solo mostrar productos destacados en su propia sección */}
-      {renderSeccion(
-        "⭐ Productos Destacados",
-        productosDestacados,
-        "bg-white"
-      )}
-      {/* Mostrar solo productos NO destacados en las otras secciones */}
-      {renderSeccion(
-        "🔥 Ofertas Especiales",
-        productosNoDestacados.slice(0, 4),
-        "bg-light"
-      )}
-      {renderSeccion(
-        "💎 Productos Populares",
-        productosNoDestacados.slice(4),
-        "bg-white"
-      )}
+      {renderSeccion("⭐ Productos Destacados", productosDestacados, "bg-white")}
+      {renderSeccion("🔥 Ofertas Especiales", productosNoDestacados.slice(0, 4), "bg-light")}
+      {renderSeccion("💎 Productos Populares", productosNoDestacados.slice(4), "bg-white")}
     </div>
   );
 }
