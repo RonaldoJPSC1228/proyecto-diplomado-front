@@ -6,6 +6,7 @@ import Footer from './components/footer';
 import Home from './pages/home';
 import Login from './pages/auth/login';
 import Register from './pages/auth/register';
+import Tienda from './pages/tienda';
 
 function App() {
   const [count, setCount] = useState(0);
@@ -17,6 +18,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/tienda" element={<Tienda />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
       <Footer />
