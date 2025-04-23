@@ -98,7 +98,7 @@ function Navbar() {
             {/* Mostrar carrito solo si el usuario está logueado y no es admin */}
             {role !== null && role !== "admin" && (
               <li className="nav-item">
-                <Link className="nav-link" to="/cart">Carrito <i className="fas fa-cart-plus"></i></Link>
+                <Link className="nav-link" to="/cart"> <i className="fas fa-cart-plus"></i></Link>
               </li>
             )}
 

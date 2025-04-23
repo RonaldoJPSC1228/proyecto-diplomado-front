@@ -1,12 +1,18 @@
 import React, { useEffect, useState, useMemo } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase/firebase"; // Ajusta si tu ruta es distinta
+import { collection, getDocs, doc } from "firebase/firestore";
+import { db } from "../firebase/firebase";
+import { auth } from "../firebase/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 
 function Tienda() {
   const [productos, setProductos] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [categoria, setCategoria] = useState("Todos");
+
+  const [user, setUser] = useState(null);
+  const [role, setRole] = useState(null);
+  const navigate = useNavigate();
 
   // Obtener productos de Firebase
   useEffect(() => {
@@ -26,7 +32,24 @@ function Tienda() {
     obtenerProductos();
   }, []);
 
-  // Función de formato de precios
+  // Detectar usuario y obtener rol
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+        const userDoc = await getDocs(doc(db, "users", firebaseUser.uid));
+        if (userDoc.exists()) {
+          setRole(userDoc.data().rol); // <-- se usa "rol", no "role"
+        }
+      } else {
+        setUser(null);
+        setRole(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("es-CO", {
       style: "currency",
@@ -34,7 +57,6 @@ function Tienda() {
     }).format(amount);
   };
 
-  // Filtrar productos de forma eficiente
   const productosFiltrados = useMemo(() => {
     return productos.filter((p) => {
       const coincideCategoria =
@@ -46,7 +68,31 @@ function Tienda() {
     });
   }, [productos, busqueda, categoria]);
 
-  // Extraer categorías únicas de los productos
+  const handleAddToCart = (producto) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    if (role === "admin") {
+      alert("Los administradores no pueden agregar productos al carrito.");
+      return;
+    }
+
+    const precio = Number(producto.precio);
+    let storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+    const existingProduct = storedCart.find((item) => item.id === producto.id);
+
+    if (existingProduct) {
+      existingProduct.quantity += 1;
+    } else {
+      storedCart.push({ ...producto, price: precio, quantity: 1 });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(storedCart));
+    alert("Producto agregado al carrito");
+  };
+
   const categorias = useMemo(() => {
     return [
       "Todos",
@@ -89,7 +135,14 @@ function Tienda() {
         {productosFiltrados.length > 0 ? (
           productosFiltrados.map((producto) => (
             <div key={producto.id} className="col-12 col-sm-6 col-md-4 col-lg-3">
-              <div className="card h-100 shadow-sm border-0">
+              <div className="card h-100 shadow-sm border-0 position-relative">
+                {/* Descuento */}
+                {producto.descuento > 0 && (
+                  <div className="position-absolute top-0 end-0 bg-danger text-white p-1 px-2 rounded-bottom-start small fw-bold">
+                    -{producto.descuento}%
+                  </div>
+                )}
+
                 <img
                   src={producto.imagen_url}
                   className="card-img-top"
@@ -99,35 +152,38 @@ function Tienda() {
                 <div className="card-body d-flex flex-column">
                   <h5 className="card-title text-truncate">{producto.nombre}</h5>
                   <p className="text-muted small">{producto.categoria}</p>
-                  <p className="fw-bold fs-5">
-                    {producto.descuento > 0 ? (
-                      <>
-                        <p className="text-muted text-decoration-line-through mb-0">
-                          {formatCurrency(Number(producto.precio))}
-                        </p>
-                        <p className="fw-bold fs-5 text-danger mb-0">
-                          {formatCurrency(
-                            Number(producto.precio) * (1 - producto.descuento / 100)
-                          )}
-                        </p>
-                      </>
-                    ) : (
-                      <p className="fw-bold fs-5 text-dark mb-0">
-                        {formatCurrency(Number(producto.precio))}
-                      </p>
-                    )}
+
+                  {/* Descripción del producto */}
+                  <p className="card-text text-truncate" style={{ fontSize: "0.9rem" }}>
+                    {producto.descripcion}
                   </p>
 
-                  <a
-                    href={`https://wa.me/573001112233?text=Hola! Estoy interesado en: ${encodeURIComponent(
-                      producto.nombre
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-success mt-auto"
-                  >
-                    Comprar por WhatsApp
-                  </a>
+                  {producto.descuento > 0 ? (
+                    <>
+                      <p className="text-muted text-decoration-line-through mb-0">
+                        {formatCurrency(Number(producto.precio))}
+                      </p>
+                      <p className="fw-bold fs-5 text-danger mb-0">
+                        {formatCurrency(
+                          Number(producto.precio) * (1 - producto.descuento / 100)
+                        )}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="fw-bold fs-5 text-dark mb-0">
+                      {formatCurrency(Number(producto.precio))}
+                    </p>
+                  )}
+
+                  {/* Solo mostrar botón si no es admin */}
+                  {role !== "admin" && (
+                    <button
+                      onClick={() => handleAddToCart(producto)}
+                      className="btn btn-success mt-auto"
+                    >
+                      Agregar al carrito
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
