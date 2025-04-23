@@ -69,6 +69,28 @@ const Products = () => {
     }
   };
 
+  const handleToggleFeatured = async (id, isFeatured) => {
+    const productRef = doc(db, "items", id);
+    try {
+      await updateDoc(productRef, { destacado: !isFeatured });
+
+      setItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === id ? { ...item, destacado: !isFeatured } : item
+        )
+      );
+
+      Swal.fire(
+        isFeatured ? "Destacado quitado" : "Producto destacado",
+        `El producto ha sido ${isFeatured ? "desmarcado como destacado" : "marcado como destacado"}`,
+        "success"
+      );
+    } catch (error) {
+      console.error("Error al actualizar el estado de destacado:", error);
+      Swal.fire("Error", "Hubo un problema al actualizar el producto.", "error");
+    }
+  };
+
   const formatPrice = (value) =>
     new Intl.NumberFormat("es-CO", {
       style: "currency",
@@ -76,7 +98,10 @@ const Products = () => {
       minimumFractionDigits: 0,
     }).format(Number(value));
 
-  if (loading) return <p>Cargando productos...</p>;
+  if (loading) return 
+  <div>   
+    <p>Cargando productos...</p>;
+  </div>
 
   return (
     <div className="container justify-content-center mt-4">
@@ -95,6 +120,7 @@ const Products = () => {
             <th>P. Desct</th>
             <th>Categoría</th>
             <th>Descuento</th>
+            <th>Destacado</th>
             <th>Estado</th>
             <th>Acciones</th>
           </tr>
@@ -113,6 +139,19 @@ const Products = () => {
                 <td>{formatPrice(precioConDescuento)}</td>
                 <td>{item.categoria}</td>
                 <td>{item.descuento ? `${item.descuento}%` : "N/A"}</td>
+                <td>
+                  <button
+                    className="btn btn-link"
+                    onClick={() => handleToggleFeatured(item.id, item.destacado)}
+                  >
+                    <i
+                      className={`${
+                        item.destacado ? "fas fa-heart" : "far fa-heart"
+                      }`}
+                      style={{ color: item.destacado ? "red" : "gray" }}
+                    ></i>
+                  </button>
+                </td>
                 <td>
                   {item.estado === 1
                     ? "Activo"
