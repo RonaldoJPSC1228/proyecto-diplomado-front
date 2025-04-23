@@ -170,7 +170,7 @@ function Home() {
                   )}
 
                   {/* Botón de agregar al carrito */}
-                  {isAuthenticated && (
+                  {!isAdmin && (
                     <button
                       onClick={() => handleAddToCart(producto)}
                       className="btn btn-success mb-2"
