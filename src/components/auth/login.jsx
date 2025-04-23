@@ -1,9 +1,9 @@
-// src/pages/auth/Login.jsx
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../firebase/firebase";
+import { auth, db } from "../../firebase/firebase";
 import Swal from "sweetalert2";
 import { useNavigate, Link } from "react-router-dom";
+import { doc, getDoc } from "firebase/firestore";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -17,11 +17,28 @@ function Login() {
     }
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      Swal.fire("Éxito", "Inicio de sesión exitoso", "success");
-      navigate("/dashboard"); // Redirige a la página del dashboard
+      // Iniciar sesión con Firebase
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Obtener datos del usuario desde Firestore
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const userRole = userSnap.data().rol;
+
+        // Redirigir según el rol del usuario
+        if (userRole === "admin") {
+          navigate("/dashboard"); // Redirigir al dashboard si es admin
+        } else {
+          navigate("/"); // Redirigir al inicio si es usuario normal
+        }
+
+        Swal.fire("Éxito", "Inicio de sesión exitoso", "success");
+      }
     } catch (error) {
-      // Manejo de errores más detallado
+      // Manejo de errores
       let errorMessage = "Ocurrió un error. Intenta nuevamente más tarde.";
       if (error.code === "auth/user-not-found") {
         errorMessage = "Usuario no encontrado. Verifica tu correo electrónico.";
