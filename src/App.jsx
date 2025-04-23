@@ -22,6 +22,7 @@ import PrivateRoute from "./components/auth/privateRoute";
 import Cart from "./pages/cart";
 
 import NotFound from "./pages/notFound";
+import EditProduct from "./components/admin/editProduct";
 
 function App() {
   return (
@@ -73,6 +74,9 @@ function App() {
                 </AdminRoute>
               }
             />
+
+            <Route path="/products/:id/edit" element={<EditProduct />} />
+
 
             <Route
               path="/cart"

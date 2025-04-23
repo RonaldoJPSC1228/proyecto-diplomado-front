@@ -1,67 +1,69 @@
-import React, { useState, useEffect } from 'react';
-import { db } from '../../firebase/firebase';
-import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom'; // Importamos useNavigate
-import Swal from 'sweetalert2';
+import React, { useState, useEffect } from "react";
+import { db } from "../../firebase/firebase";
+import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const Products = () => {
   const [items, setItems] = useState([]);
-  const navigate = useNavigate(); // Usamos useNavigate para redirigir
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchItems = async () => {
-      const itemsCollection = collection(db, 'items');
+      const itemsCollection = collection(db, "items");
       const itemsSnapshot = await getDocs(itemsCollection);
-      const itemsList = itemsSnapshot.docs.map(doc => ({
+      const itemsList = itemsSnapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
       setItems(itemsList);
-      setLoading(false); // Deja de cargar una vez que los datos están listos
+      setLoading(false);
     };
 
     fetchItems();
   }, []);
 
   const handleCreateProduct = () => {
-    navigate('/products/create'); // Redirige a la vista de crear producto
+    navigate("/products/create");
   };
 
   const handleViewDetails = (id) => {
-    navigate(`/products/${id}`); // Redirige al detalle del producto
+    navigate(`/products/${id}`);
   };
 
   const handleDeleteProduct = async (id) => {
-    // Confirmar eliminación con SweetAlert
-    const result = await Swal.fire({
-      title: '¿Estás seguro?',
-      text: 'Este producto será eliminado permanentemente.',
-      icon: 'warning',
+    const confirm = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "Este producto será marcado como eliminado.",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
     });
 
-    if (result.isConfirmed) {
+    if (confirm.isConfirmed) {
       try {
-        // Eliminar producto de Firestore
-        const productDoc = doc(db, 'items', id);
-        await deleteDoc(productDoc);
+        const productRef = doc(db, "items", id);
+        await updateDoc(productRef, { estado: 2 }); // Estado 2 = Eliminado
 
-        // Actualizar el estado para eliminar el producto de la lista
-        setItems(items.filter(item => item.id !== id));
+        setItems((prevItems) =>
+          prevItems.map((item) =>
+            item.id === id ? { ...item, estado: 2 } : item
+          )
+        );
 
         Swal.fire(
-          'Eliminado',
-          'El producto ha sido eliminado.',
-          'success'
+          "Eliminado",
+          "El producto ha sido marcado como eliminado.",
+          "success"
         );
       } catch (error) {
+        console.error("Error al cambiar estado a eliminado:", error);
         Swal.fire(
-          'Error',
-          'Hubo un problema al eliminar el producto.',
-          'error'
+          "Error",
+          "Hubo un problema al eliminar el producto.",
+          "error"
         );
       }
     }
@@ -73,9 +75,8 @@ const Products = () => {
     <div className="container justify-content-center mt-4">
       <h2>Productos Disponibles</h2>
 
-      {/* Botón para redirigir a la vista de crear producto */}
       <button className="btn btn-primary mb-3" onClick={handleCreateProduct}>
-      Crear Producto <i className="fas fa-add"></i>
+        Crear Producto <i className="fas fa-add"></i>
       </button>
 
       <table className="table">
@@ -87,28 +88,41 @@ const Products = () => {
             <th>Categoría</th>
             <th>Descuento</th>
             <th>Estado</th>
-            <th>Acciones</th> {/* Columna de acciones */}
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {items.map(item => (
+          {items.map((item) => (
             <tr key={item.id}>
               <td>{item.nombre}</td>
               <td>{item.descripcion}</td>
-              <td>{item.precio}</td>
+              <td>${item.precio.toLocaleString('es-CO', { minimumFractionDigits: 2 })}</td>
               <td>{item.categoria}</td>
-              <td>{item.descuento ? `${item.descuento}%` : 'N/A'}</td>
-              <td>{item.estado === 1 ? 'Activo' : item.estado === 0 ? 'Inactivo' : 'Eliminado'}</td>
+              <td>{item.descuento ? `${item.descuento}%` : "N/A"}</td>
               <td>
-                <button 
-                  className="btn btn-info me-2"
-                  onClick={() => handleViewDetails(item.id)} // Acción para ver detalles
+                {item.estado === 1
+                  ? "Activo"
+                  : item.estado === 0
+                  ? "Inactivo"
+                  : "Eliminado"}
+              </td>
+              <td className="d-flex gap-2">
+                <button
+                  className="btn btn-info"
+                  onClick={() => handleViewDetails(item.id)}
                 >
                   <i className="fas fa-eye"></i>
                 </button>
-                <button 
+                <button
+                  className="btn btn-warning"
+                  onClick={() => navigate(`/products/${item.id}/edit`)}
+                >
+                  <i className="fas fa-edit"></i>
+                </button>
+
+                <button
                   className="btn btn-danger"
-                  onClick={() => handleDeleteProduct(item.id)} // Acción para eliminar producto
+                  onClick={() => handleDeleteProduct(item.id)}
                 >
                   <i className="fas fa-trash"></i>
                 </button>
