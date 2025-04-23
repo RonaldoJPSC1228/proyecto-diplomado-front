@@ -1,5 +1,4 @@
-// src/pages/Tienda.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase/firebase"; // Ajusta si tu ruta es distinta
@@ -8,8 +7,8 @@ function Tienda() {
   const [productos, setProductos] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [categoria, setCategoria] = useState("Todos");
-  const [categorias, setCategorias] = useState(["Todos"]);
 
+  // Obtener productos de Firebase
   useEffect(() => {
     const obtenerProductos = async () => {
       try {
@@ -19,12 +18,6 @@ function Tienda() {
           .filter((p) => p.estado === 1); // Solo productos activos
 
         setProductos(productosData);
-
-        const categoriasUnicas = [
-          "Todos",
-          ...new Set(productosData.map((p) => p.categoria).filter(Boolean)),
-        ];
-        setCategorias(categoriasUnicas);
       } catch (error) {
         console.error("Error al obtener productos de Firebase:", error);
       }
@@ -33,14 +26,33 @@ function Tienda() {
     obtenerProductos();
   }, []);
 
-  const productosFiltrados = productos.filter((p) => {
-    const coincideCategoria =
-      categoria === "Todos" || p.categoria === categoria;
-    const coincideBusqueda = p.nombre
-      ?.toLowerCase()
-      .includes(busqueda.toLowerCase());
-    return coincideCategoria && coincideBusqueda;
-  });
+  // Función de formato de precios
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+    }).format(amount);
+  };
+
+  // Filtrar productos de forma eficiente
+  const productosFiltrados = useMemo(() => {
+    return productos.filter((p) => {
+      const coincideCategoria =
+        categoria === "Todos" || p.categoria === categoria;
+      const coincideBusqueda = p.nombre
+        ?.toLowerCase()
+        .includes(busqueda.toLowerCase());
+      return coincideCategoria && coincideBusqueda;
+    });
+  }, [productos, busqueda, categoria]);
+
+  // Extraer categorías únicas de los productos
+  const categorias = useMemo(() => {
+    return [
+      "Todos",
+      ...new Set(productos.map((p) => p.categoria).filter(Boolean)),
+    ];
+  }, [productos]);
 
   return (
     <div className="container py-5">
@@ -76,10 +88,7 @@ function Tienda() {
       <div className="row g-4">
         {productosFiltrados.length > 0 ? (
           productosFiltrados.map((producto) => (
-            <div
-              key={producto.id}
-              className="col-12 col-sm-6 col-md-4 col-lg-3"
-            >
+            <div key={producto.id} className="col-12 col-sm-6 col-md-4 col-lg-3">
               <div className="card h-100 shadow-sm border-0">
                 <img
                   src={producto.imagen_url}
@@ -88,35 +97,23 @@ function Tienda() {
                   style={{ height: "180px", objectFit: "cover" }}
                 />
                 <div className="card-body d-flex flex-column">
-                  <h5 className="card-title text-truncate">
-                    {producto.nombre}
-                  </h5>
+                  <h5 className="card-title text-truncate">{producto.nombre}</h5>
                   <p className="text-muted small">{producto.categoria}</p>
                   <p className="fw-bold fs-5">
                     {producto.descuento > 0 ? (
                       <>
                         <p className="text-muted text-decoration-line-through mb-0">
-                          {new Intl.NumberFormat("es-CO", {
-                            style: "currency",
-                            currency: "COP",
-                          }).format(Number(producto.precio))}
+                          {formatCurrency(Number(producto.precio))}
                         </p>
                         <p className="fw-bold fs-5 text-danger mb-0">
-                          {new Intl.NumberFormat("es-CO", {
-                            style: "currency",
-                            currency: "COP",
-                          }).format(
-                            Number(producto.precio) *
-                              (1 - producto.descuento / 100)
+                          {formatCurrency(
+                            Number(producto.precio) * (1 - producto.descuento / 100)
                           )}
                         </p>
                       </>
                     ) : (
                       <p className="fw-bold fs-5 text-dark mb-0">
-                        {new Intl.NumberFormat("es-CO", {
-                          style: "currency",
-                          currency: "COP",
-                        }).format(Number(producto.precio))}
+                        {formatCurrency(Number(producto.precio))}
                       </p>
                     )}
                   </p>
