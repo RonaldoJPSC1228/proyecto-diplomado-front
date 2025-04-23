@@ -87,10 +87,10 @@ function Navbar() {
 
             {/* Ítems comunes */}
             <li className="nav-item">
-              <Link className="nav-link" to="/tienda">Tienda <i class="fas fa-shop"></i></Link>
+              <Link className="nav-link" to="/tienda">Tienda <i className="fas fa-shop"></i></Link>
             </li>
             {/* <li className="nav-item">
-              <Link className="nav-link" to="/">Descuentos <i class="fas fa-chart-line"></i></Link>
+              <Link className="nav-link" to="/">Descuentos <i className="fas fa-chart-line"></i></Link>
             </li> */}
           </ul>
 

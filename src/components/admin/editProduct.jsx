@@ -14,7 +14,7 @@ const EditProduct = () => {
     precio: "",
     categoria: "",
     descuento: "",
-    estado: 1,
+    // estado: 0,
     imagen_url: "",
   });
 
@@ -24,7 +24,12 @@ const EditProduct = () => {
         const productRef = doc(db, "items", id);
         const productSnap = await getDoc(productRef);
         if (productSnap.exists()) {
-          setProduct(productSnap.data());
+          const productData = productSnap.data();
+          setProduct((prev) => ({
+            ...prev,
+            ...productData,
+            estado: productData.estado,
+          }));
         } else {
           Swal.fire("Error", "Producto no encontrado", "error");
           navigate("/products");
@@ -42,9 +47,9 @@ const EditProduct = () => {
     const { name, value } = e.target;
     setProduct((prev) => ({
       ...prev,
-      [name]:
-        name === "precio" || name === "descuento" || name === "estado"
-          ? Number(value)
+      [name]: 
+        name === "precio" || name === "descuento" || name === "estado" 
+          ? Number(value) 
           : value,
     }));
   };
@@ -138,7 +143,7 @@ const EditProduct = () => {
           <select
             name="estado"
             className="form-control"
-            value={product.estado || 1}
+            value={product.estado}
             onChange={handleChange}
           >
             <option value={0}>Inactivo</option>
