@@ -92,12 +92,6 @@ function Navbar() {
             <li className="nav-item">
               <Link className="nav-link" to="/">Descuentos <i class="fas fa-chart-line"></i></Link>
             </li>
-            <li className="nav-item">
-              <Link className="nav-link" to="/">Tienda <i className="fas fa-shop"></i></Link>
-            </li>
-            <li className="nav-item">
-              <Link className="nav-link" to="/">Descuentos <i className="fas fa-chart-line"></i></Link>
-            </li>
           </ul>
 
           <ul className="navbar-nav ms-auto">

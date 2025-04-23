@@ -40,7 +40,7 @@ function App() {
             <Route path="/" element={<Home />} /> {/* Muestra los productos destacados y normales */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-        <Route path="/tienda" element={<Tienda />} />
+            <Route path="/tienda" element={<Tienda />} />
 
             {/* Admin Routes */}
             <Route
