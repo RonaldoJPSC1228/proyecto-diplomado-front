@@ -3,12 +3,14 @@ import { signOut } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import Swal from "sweetalert2";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 function Navbar() {
   const navigate = useNavigate();
   const [role, setRole] = useState(null); // 'admin' o 'usuario'
   const [loading, setLoading] = useState(true); // Se utilizará para indicar si estamos esperando la autenticación.
+  const [showLogout, setShowLogout] = useState(false); // Estado para controlar la visibilidad del menú de logout
+  const dropdownRef = useRef(null); // Referencia al contenedor del menú desplegable
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -36,6 +38,19 @@ function Navbar() {
       Swal.fire("Error", error.message, "error");
     }
   };
+
+  // Función para manejar el clic fuera del dropdown para cerrarlo
+  const handleClickOutside = (event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setShowLogout(false);
+    }
+  };
+
+  // Detectamos clics fuera del dropdown para cerrarlo
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   if (loading) return null; // Mientras estamos esperando, no renderizamos nada del navbar.
 
@@ -72,7 +87,9 @@ function Navbar() {
             <li className="nav-item">
               <Link className="nav-link" to="/">Descuentos <i className="fas fa-chart-line"></i></Link>
             </li>
+          </ul>
 
+          <ul className="navbar-nav ms-auto">
             {/* Mostrar carrito solo si el usuario está logueado y no es admin */}
             {role !== null && role !== "admin" && (
               <li className="nav-item">
@@ -91,9 +108,23 @@ function Navbar() {
                 </li>
               </>
             ) : (
-              // Si hay sesión, mostrar botón de logout
-              <li className="nav-item">
-                <button className="nav-link btn btn-danger" onClick={handleLogout}>Cerrar sesión</button>
+              // Si hay sesión, mostrar ícono de usuario
+              <li className="nav-item dropdown" ref={dropdownRef}>
+                <button
+                  className="nav-link btn btn-link dropdown-toggle"
+                  onClick={() => setShowLogout(!showLogout)} // Alterna la visibilidad del menú
+                >
+                  <i className="fas fa-user"></i> {/* Ícono de usuario */}
+                </button>
+
+                {/* Menú desplegable de logout */}
+                {showLogout && (
+                  <div className="dropdown-menu dropdown-menu-end show">
+                    <button className="dropdown-item text-danger bg-light" onClick={handleLogout}>
+                      Cerrar sesión
+                    </button>
+                  </div>
+                )}
               </li>
             )}
           </ul>

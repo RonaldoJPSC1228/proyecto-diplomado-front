@@ -9,6 +9,7 @@ import Carrito from './pages/cart';
 import AutoLogoutWrapper from './components/auth/autoLogoutWrapper';
 import AdminRoute from './components/admin/adminRoute';
 import PrivateRoute from './components/auth/privateRoute';
+import NotFound from './pages/notFound';
 
 function App() {
   return (
@@ -44,7 +45,7 @@ function App() {
               }
             />
             
-            <Route path="*" element={<Navigate to="/" />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
 
