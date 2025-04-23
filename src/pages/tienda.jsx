@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { collection, getDocs, doc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { auth } from "../firebase/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -37,9 +37,9 @@ function Tienda() {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
-        const userDoc = await getDocs(doc(db, "users", firebaseUser.uid));
+        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
         if (userDoc.exists()) {
-          setRole(userDoc.data().rol); // <-- se usa "rol", no "role"
+          setRole(userDoc.data().rol);
         }
       } else {
         setUser(null);
