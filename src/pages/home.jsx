@@ -10,17 +10,21 @@ import {
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { useNavigate } from "react-router-dom";
 
 function Home() {
   const [productos, setProductos] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false); // NUEVO: Estado para rol admin
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [user, setUser] = useState(null);  // Estado del usuario
+  const navigate = useNavigate();
 
   useEffect(() => {
     const auth = getAuth();
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         setIsAuthenticated(true);
+        setUser(user);
 
         try {
           const userQuery = query(
@@ -42,6 +46,7 @@ function Home() {
       } else {
         setIsAuthenticated(false);
         setIsAdmin(false);
+        setUser(null);
       }
     });
   }, []);
@@ -78,6 +83,26 @@ function Home() {
     } catch (error) {
       console.error("Error al actualizar producto destacado:", error);
     }
+  };
+
+  const handleAddToCart = (producto) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    const precio = Number(producto.precio);
+    let storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+    const existingProduct = storedCart.find((item) => item.id === producto.id);
+
+    if (existingProduct) {
+      existingProduct.quantity += 1;
+    } else {
+      storedCart.push({ ...producto, price: precio, quantity: 1 });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(storedCart));
+    // alert("Producto agregado al carrito");
   };
 
   const productosDestacados = productos.filter((p) => p.destacado);
@@ -143,16 +168,16 @@ function Home() {
                       }).format(Number(producto.precio))}
                     </p>
                   )}
-                  <a
-                    href={`https://wa.me/573001112233?text=Hola! Estoy interesado en: ${encodeURIComponent(
-                      producto.nombre
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-outline-success mb-2"
-                  >
-                    Comprar por WhatsApp
-                  </a>
+
+                  {/* Botón de agregar al carrito */}
+                  {isAuthenticated && (
+                    <button
+                      onClick={() => handleAddToCart(producto)}
+                      className="btn btn-success mb-2"
+                    >
+                      Agregar al carrito
+                    </button>
+                  )}
 
                   {/* Solo ADMIN puede ver este botón */}
                   {isAuthenticated && isAdmin && (
