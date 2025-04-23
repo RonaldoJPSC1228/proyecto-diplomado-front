@@ -36,10 +36,11 @@ function App() {
         {/* El main ocupa el espacio restante y asegura que el footer esté abajo */}
         <div className="flex-grow-1">
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Home />} /> {/* Muestra los productos destacados y normales */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
+            {/* Admin Routes */}
             <Route
               path="/dashboard"
               element={
@@ -52,42 +53,45 @@ function App() {
               path="/products"
               element={
                 <AdminRoute>
-                  <Products />
+                  <Products /> {/* Admin puede gestionar productos */}
                 </AdminRoute>
               }
             />
-
             <Route
               path="/products/create"
               element={
                 <AdminRoute>
-                  <CreateProduct />
+                  <CreateProduct /> {/* Admin puede crear productos */}
                 </AdminRoute>
               }
             />
-
             <Route
               path="/products/:id"
               element={
                 <AdminRoute>
-                  <DetailProduct />
+                  <DetailProduct /> {/* Admin puede ver detalles del producto */}
                 </AdminRoute>
               }
             />
-
-            <Route path="/products/:id/edit" element={<EditProduct />} />
-
+            <Route
+              path="/products/:id/edit"
+              element={
+                <AdminRoute>
+                  <EditProduct /> {/* Admin puede editar productos */}
+                </AdminRoute>
+              }
+            />
 
             <Route
               path="/cart"
               element={
                 <PrivateRoute>
-                  <Cart />
+                  <Cart /> {/* Solo usuarios logueados pueden ver el carrito */}
                 </PrivateRoute>
               }
             />
 
-            <Route path="*" element={<NotFound />} />
+            <Route path="*" element={<NotFound />} /> {/* Ruta no encontrada */}
           </Routes>
         </div>
 
