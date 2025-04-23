@@ -1,25 +1,44 @@
 // src/pages/Tienda.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase/firebase"; // Ajusta si tu ruta es distinta
 
 function Tienda() {
-  const productosIniciales = [
-    { id: 1, nombre: "Camiseta React", categoria: "Ropa", precio: 25, imagen: "https://m.media-amazon.com/images/I/81ERMazfqjL._AC_UY1000_.jpg" },
-    { id: 2, nombre: "Sudadera Python", categoria: "Ropa", precio: 40, imagen: "https://shoppinginibiza.com/184084-home_default/champion-sudadera-beige-306497-ninoa.jpg" },
-    { id: 3, nombre: "Taza Code", categoria: "Accesorios", precio: 12, imagen: "https://m.media-amazon.com/images/I/61CC0D3fhRL._AC_UF894,1000_QL80_.jpg" },
-    { id: 4, nombre: "Sticker Pack", categoria: "Accesorios", precio: 5, imagen: "https://www.sunbum.com/cdn/shop/products/05_SB_2022_StickerPack_PDP_R1V1_720x.jpg?v=1704411843" },
-    { id: 5, nombre: "Mouse Ergonómico", categoria: "Electrónica", precio: 20, imagen: "https://exitocol.vtexassets.com/arquivos/ids/20875942/mouse-ergonomico-inalambrico-usb-vertical.jpg?v=638400902677930000" },
-    { id: 6, nombre: "Teclado Mecánico", categoria: "Electrónica", precio: 60, imagen: "https://symcomputadores.com/wp-content/uploads/2025/01/TECLADO-GAMER-TKL-SWITCH-AZUL-1.png" },
-  ];
-
+  const [productos, setProductos] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [categoria, setCategoria] = useState("Todos");
+  const [categorias, setCategorias] = useState(["Todos"]);
 
-  const categorias = ["Todos", ...new Set(productosIniciales.map(p => p.categoria))];
+  useEffect(() => {
+    const obtenerProductos = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "items"));
+        const productosData = querySnapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() }))
+          .filter((p) => p.estado === 1); // Solo productos activos
 
-  const productosFiltrados = productosIniciales.filter(p => {
-    const coincideCategoria = categoria === "Todos" || p.categoria === categoria;
-    const coincideBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase());
+        setProductos(productosData);
+
+        const categoriasUnicas = [
+          "Todos",
+          ...new Set(productosData.map((p) => p.categoria).filter(Boolean)),
+        ];
+        setCategorias(categoriasUnicas);
+      } catch (error) {
+        console.error("Error al obtener productos de Firebase:", error);
+      }
+    };
+
+    obtenerProductos();
+  }, []);
+
+  const productosFiltrados = productos.filter((p) => {
+    const coincideCategoria =
+      categoria === "Todos" || p.categoria === categoria;
+    const coincideBusqueda = p.nombre
+      ?.toLowerCase()
+      .includes(busqueda.toLowerCase());
     return coincideCategoria && coincideBusqueda;
   });
 
@@ -45,7 +64,9 @@ function Tienda() {
             onChange={(e) => setCategoria(e.target.value)}
           >
             {categorias.map((cat, i) => (
-              <option key={i} value={cat}>{cat}</option>
+              <option key={i} value={cat}>
+                {cat}
+              </option>
             ))}
           </select>
         </div>
@@ -54,21 +75,56 @@ function Tienda() {
       {/* Productos */}
       <div className="row g-4">
         {productosFiltrados.length > 0 ? (
-          productosFiltrados.map(producto => (
-            <div key={producto.id} className="col-12 col-sm-6 col-md-4 col-lg-3">
+          productosFiltrados.map((producto) => (
+            <div
+              key={producto.id}
+              className="col-12 col-sm-6 col-md-4 col-lg-3"
+            >
               <div className="card h-100 shadow-sm border-0">
                 <img
-                  src={producto.imagen}
+                  src={producto.imagen_url}
                   className="card-img-top"
                   alt={producto.nombre}
                   style={{ height: "180px", objectFit: "cover" }}
                 />
                 <div className="card-body d-flex flex-column">
-                  <h5 className="card-title text-truncate">{producto.nombre}</h5>
+                  <h5 className="card-title text-truncate">
+                    {producto.nombre}
+                  </h5>
                   <p className="text-muted small">{producto.categoria}</p>
-                  <p className="fw-bold text-danger fs-5">${producto.precio}</p>
+                  <p className="fw-bold fs-5">
+                    {producto.descuento > 0 ? (
+                      <>
+                        <p className="text-muted text-decoration-line-through mb-0">
+                          {new Intl.NumberFormat("es-CO", {
+                            style: "currency",
+                            currency: "COP",
+                          }).format(Number(producto.precio))}
+                        </p>
+                        <p className="fw-bold fs-5 text-danger mb-0">
+                          {new Intl.NumberFormat("es-CO", {
+                            style: "currency",
+                            currency: "COP",
+                          }).format(
+                            Number(producto.precio) *
+                              (1 - producto.descuento / 100)
+                          )}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="fw-bold fs-5 text-dark mb-0">
+                        {new Intl.NumberFormat("es-CO", {
+                          style: "currency",
+                          currency: "COP",
+                        }).format(Number(producto.precio))}
+                      </p>
+                    )}
+                  </p>
+
                   <a
-                    href={`https://wa.me/573001112233?text=Hola! Estoy interesado en: ${encodeURIComponent(producto.nombre)}`}
+                    href={`https://wa.me/573001112233?text=Hola! Estoy interesado en: ${encodeURIComponent(
+                      producto.nombre
+                    )}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn-success mt-auto"
