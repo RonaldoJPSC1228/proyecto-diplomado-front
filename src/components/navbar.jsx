@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 function Navbar() {
   const navigate = useNavigate();
   const [role, setRole] = useState(null); // 'admin' o 'usuario'
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Se utilizará para indicar si estamos esperando la autenticación.
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -21,7 +21,7 @@ function Navbar() {
       } else {
         setRole(null);
       }
-      setLoading(false);
+      setLoading(false); // Cuando se obtenga la respuesta, ya no estamos cargando.
     });
 
     return () => unsubscribe();
@@ -37,7 +37,7 @@ function Navbar() {
     }
   };
 
-  if (loading) return null;
+  if (loading) return null; // Mientras estamos esperando, no renderizamos nada del navbar.
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -55,7 +55,7 @@ function Navbar() {
           <ul className="navbar-nav">
             {/* Ítems comunes */}
             <li className="nav-item">
-              <Link className="nav-link" to="/">Inicio <i class="fas fa-house"></i></Link>
+              <Link className="nav-link" to="/">Inicio <i className="fas fa-house"></i></Link>
             </li>
 
             {/* Solo para admins */}
@@ -67,14 +67,18 @@ function Navbar() {
 
             {/* Ítems comunes */}
             <li className="nav-item">
-              <Link className="nav-link" to="/">Tienda <i class="fas fa-shop"></i></Link>
+              <Link className="nav-link" to="/">Tienda <i className="fas fa-shop"></i></Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to="/">Descuentos <i class="fas fa-chart-line"></i></Link>
+              <Link className="nav-link" to="/">Descuentos <i className="fas fa-chart-line"></i></Link>
             </li>
-            <li className="nav-item">
-              <Link className="nav-link" to="/">Carrito <i class="fas fa-cart-plus"></i></Link>
-            </li>
+
+            {/* Mostrar carrito solo si el usuario está logueado y no es admin */}
+            {role !== null && role !== "admin" && (
+              <li className="nav-item">
+                <Link className="nav-link" to="/cart">Carrito <i className="fas fa-cart-plus"></i></Link>
+              </li>
+            )}
 
             {/* Mostrar login/register si no hay sesión */}
             {role === null ? (
