@@ -11,6 +11,7 @@ import {
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
+import Swal from 'sweetalert2';
 
 function Home() {
   const [productos, setProductos] = useState([]);
@@ -90,20 +91,40 @@ function Home() {
       navigate("/login");
       return;
     }
-
+  
     const precio = Number(producto.precio);
     let storedCart = JSON.parse(localStorage.getItem("cart")) || [];
     const existingProduct = storedCart.find((item) => item.id === producto.id);
-
+  
     if (existingProduct) {
       existingProduct.quantity += 1;
     } else {
       storedCart.push({ ...producto, price: precio, quantity: 1 });
     }
-
+  
     localStorage.setItem("cart", JSON.stringify(storedCart));
-    // alert("Producto agregado al carrito");
+  
+    // Actualizar el contador en el Navbar
+    updateCartCount();
+  
+    Swal.fire({
+      icon: 'success',
+      title: '¡Producto agregado!',
+      text: `"${producto.nombre}" se ha añadido al carrito.`,
+      showConfirmButton: false,
+      timer: 1500,
+    });
   };
+
+  const updateCartCount = () => {
+    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+    const cartCount = storedCart.reduce((total, item) => total + item.quantity, 0);
+  
+    // Actualizar el contador global (en algún lugar accesible del Navbar o el layout principal)
+    if (window && window.updateCartBadge) {
+      window.updateCartBadge(cartCount); // Usamos window para actualizar el contador globalmente
+    }
+  };  
 
   const productosDestacados = productos.filter((p) => p.destacado);
   const productosNoDestacados = productos.filter((p) => !p.destacado);
@@ -194,6 +215,16 @@ function Home() {
                         : "Agregar a destacados"}
                     </button>
                   )}
+
+                  {/* Botón de "Ver Detalles" visible solo para usuarios no admin */}
+                  {!isAdmin && (
+                    <button
+                      onClick={() => navigate(`/products/${producto.id}`)} // Redirige a la página de detalles del producto
+                      className="btn btn-info mt-2"
+                    >
+                      Ver detalles
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -207,7 +238,7 @@ function Home() {
     <div className="mt-5 pt-4" style={{ backgroundColor: "#f5f5f5" }}>
       {renderSeccion("⭐ Productos Destacados", productosDestacados, "bg-white")}
       {renderSeccion("🔥 Ofertas Especiales", productosNoDestacados.slice(0, 4), "bg-light")}
-      {renderSeccion("💎 Productos Populares", productosNoDestacados.slice(4), "bg-white")}
+      {renderSeccion("💎 Productos Populares", productosNoDestacados.slice(4, 8), "bg-white")}
     </div>
   );
 }

@@ -24,6 +24,8 @@ import Cart from "./pages/cart";
 import NotFound from "./pages/notFound";
 import EditProduct from "./components/admin/editProduct";
 import Tienda from './pages/tienda';
+import Checkout from "./pages/checkout";
+import Order from "./pages/order";
 
 function App() {
   return (
@@ -70,9 +72,9 @@ function App() {
             <Route
               path="/products/:id"
               element={
-                <AdminRoute>
-                  <DetailProduct /> {/* Admin puede ver detalles del producto */}
-                </AdminRoute>
+                // <AdminRoute>
+                  <DetailProduct />
+                // </AdminRoute>
               }
             />
             <Route
@@ -89,6 +91,22 @@ function App() {
               element={
                 <PrivateRoute>
                   <Cart /> {/* Solo usuarios logueados pueden ver el carrito */}
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/checkout"
+              element={
+                <PrivateRoute>
+                  <Checkout /> {/* Solo usuarios logueados pueden hacer check del carrito */}
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/order"
+              element={
+                <PrivateRoute>
+                  <Order /> {/* Solo usuarios logueados pueden ver la vista despues de haber hecho check */}
                 </PrivateRoute>
               }
             />

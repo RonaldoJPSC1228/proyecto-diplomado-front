@@ -1,40 +1,27 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+  }).format(amount);
+};
 
 function Cart() {
   const [cart, setCart] = useState([]);
   const [total, setTotal] = useState(0);
+  const [totalItems, setTotalItems] = useState(0); // Nuevo estado para total de artículos
   const navigate = useNavigate();
 
+  // Obtener el carrito del localStorage y recalcular total
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
     setCart(storedCart);
 
+    // Calcular el total y total de productos
     const newTotal = storedCart.reduce((acc, item) => {
-      const precioConDescuento =
-        item.descuento > 0
-          ? Number(item.precio) * (1 - item.descuento / 100)
-          : Number(item.precio);
-      return acc + precioConDescuento * item.quantity; // Calcular total
-    }, 0);
-    setTotal(newTotal);
-  }, []);
-
-  const handleRemoveItem = (id) => {
-    const updatedCart = cart.filter((item) => item.id !== id);
-    setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-  };
-
-  const handleQuantityChange = (id, newQuantity) => {
-    const updatedCart = cart.map((item) =>
-      item.id === id ? { ...item, quantity: newQuantity } : item
-    );
-    setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-
-    // Recalcular el total después de actualizar la cantidad
-    const newTotal = updatedCart.reduce((acc, item) => {
       const precioConDescuento =
         item.descuento > 0
           ? Number(item.precio) * (1 - item.descuento / 100)
@@ -42,12 +29,56 @@ function Cart() {
       return acc + precioConDescuento * item.quantity;
     }, 0);
     setTotal(newTotal);
+
+    // Calcular el total de productos en el carrito
+    const totalItems = storedCart.reduce((acc, item) => acc + item.quantity, 0);
+    setTotalItems(totalItems);  // Asignamos el total de artículos
+  }, []);
+
+  // Función para manejar la eliminación de productos del carrito
+  const handleRemoveItem = (id) => {
+    Swal.fire({
+      title: "¿Eliminar producto?",
+      text: "¿Estás seguro de que deseas eliminar este producto del carrito?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const updatedCart = cart.filter((item) => item.id !== id);
+        setCart(updatedCart);
+        localStorage.setItem("cart", JSON.stringify(updatedCart));
+
+        // Recalcular total
+        const newTotal = updatedCart.reduce((acc, item) => {
+          const precioConDescuento =
+            item.descuento > 0
+              ? Number(item.precio) * (1 - item.descuento / 100)
+              : Number(item.precio);
+          return acc + precioConDescuento * item.quantity;
+        }, 0);
+        setTotal(newTotal);
+
+        // Recalcular total de artículos
+        const totalItems = updatedCart.reduce((acc, item) => acc + item.quantity, 0);
+        setTotalItems(totalItems);
+
+        Swal.fire("Eliminado", "El producto fue eliminado del carrito.", "success");
+      }
+    });
   };
 
+  // Función para proceder al pago (Checkout)
   const handleCheckout = () => {
-    navigate("/checkout");
+    if (cart.length === 0) {
+      Swal.fire("Carrito vacío", "Agrega productos al carrito antes de proceder", "warning");
+    } else {
+      navigate("/checkout");
+    }
   };
 
+  // Si el carrito está vacío
   if (cart.length === 0) {
     return (
       <div className="d-flex justify-content-center align-items-center min-vh-100">
@@ -66,7 +97,7 @@ function Cart() {
             >
               <i className="fas fa-shopping-cart text-info fs-4"></i>
             </div>
-            <h3 className="fs-5 fw-semibold mb-0">¡Tú carrito esta vacío!</h3>
+            <h3 className="fs-5 fw-semibold mb-0">¡Tú carrito está vacío!</h3>
             <Link to="/" className="btn btn-success">
               Ir a comprar
             </Link>
@@ -76,6 +107,7 @@ function Cart() {
     );
   }
 
+  // Renderizamos el carrito con productos
   return (
     <div className="container flex-grow">
       <h2 className="mt-5">Carrito de compras</h2>
@@ -114,18 +146,14 @@ function Cart() {
                       style={{ maxWidth: "70px" }}
                     />
                   </td>
-                  <td>
-                    ${precioConDescuento.toFixed(2)}{" "}
-                    {/* Precio con descuento */}
-                  </td>
-                  <td>${totalItem.toFixed(2)}</td>
+                  <td>{formatCurrency(precioConDescuento)}</td>
+                  <td>{formatCurrency(totalItem)}</td>
                   <td>
                     <button
                       className="btn btn-danger"
                       onClick={() => handleRemoveItem(item.id)}
                     >
-                      <i class="fas fa-times"></i>
-
+                      <i className="fas fa-times"></i>
                     </button>
                   </td>
                 </tr>
@@ -136,8 +164,7 @@ function Cart() {
       </div>
 
       <div className="d-flex justify-content-between mt-4">
-        <h3>Total: ${total.toFixed(2)}</h3>{" "}
-        {/* Total con descuento ya calculado */}
+        <h3>Total: {formatCurrency(total)}</h3>
         <button className="btn btn-success" onClick={handleCheckout}>
           Proceder al pago
         </button>

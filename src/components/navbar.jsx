@@ -4,13 +4,23 @@ import { auth, db } from "../firebase/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import Swal from "sweetalert2";
 import { useEffect, useState, useRef } from "react";
+import { useLocation } from "react-router-dom";
 
 function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation(); // Obtén la ubicación actual
   const [role, setRole] = useState(null); // 'admin' o 'usuario'
   const [loading, setLoading] = useState(true); // Se utilizará para indicar si estamos esperando la autenticación.
   const [showLogout, setShowLogout] = useState(false); // Estado para controlar la visibilidad del menú de logout
+  const [totalItems, setTotalItems] = useState(0); // Estado para el contador de artículos en el carrito
   const dropdownRef = useRef(null); // Referencia al contenedor del menú desplegable
+
+  // Función para actualizar el contador del carrito desde el localStorage
+  const updateCartCount = () => {
+    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+    const totalItemsInCart = storedCart.reduce((acc, item) => acc + item.quantity, 0);
+    setTotalItems(totalItemsInCart);
+  };
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -23,11 +33,23 @@ function Navbar() {
       } else {
         setRole(null);
       }
-      setLoading(false); // Cuando se obtenga la respuesta, ya no estamos cargando.
+      setLoading(false);
     });
-
-    return () => unsubscribe();
+  
+    updateCartCount();
+  
+    // Función para manejar los cambios de carrito desde el localStorage
+    const handleStorageChange = () => {
+      updateCartCount(); // Actualiza el contador
+    };
+  
+    window.addEventListener("storage", handleStorageChange);
+  
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
+  
 
   const handleLogout = async () => {
     try {
@@ -39,20 +61,18 @@ function Navbar() {
     }
   };
 
-  // Función para manejar el clic fuera del dropdown para cerrarlo
   const handleClickOutside = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
       setShowLogout(false);
     }
   };
 
-  // Detectamos clics fuera del dropdown para cerrarlo
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  if (loading) return null; // Mientras estamos esperando, no renderizamos nada del navbar.
+  if (loading) return null;
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -89,16 +109,19 @@ function Navbar() {
             <li className="nav-item">
               <Link className="nav-link" to="/tienda">Tienda <i className="fas fa-shop"></i></Link>
             </li>
-            {/* <li className="nav-item">
-              <Link className="nav-link" to="/">Descuentos <i className="fas fa-chart-line"></i></Link>
-            </li> */}
           </ul>
 
           <ul className="navbar-nav ms-auto">
-            {/* Mostrar carrito solo si el usuario está logueado y no es admin */}
-            {role !== null && role !== "admin" && (
+            {/* Mostrar carrito solo si el usuario está logueado y no es admin, y no está en la vista /cart */}
+            {role !== null && role !== "admin" && location.pathname !== "/cart" && (
               <li className="nav-item">
-                <Link className="nav-link" to="/cart"> <i className="fas fa-cart-plus"></i></Link>
+                <Link className="nav-link" to="/cart">
+                  <i className="fas fa-cart-plus"></i>
+                  {/* Mostrar el contador de artículos si el carrito no está vacío */}
+                  {totalItems > 0 && (
+                    <span className="badge bg-danger ms-2">{totalItems}</span>
+                  )}
+                </Link>
               </li>
             )}
 

@@ -4,6 +4,7 @@ import { db } from "../firebase/firebase";
 import { auth } from "../firebase/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import Swal from 'sweetalert2';
 
 function Tienda() {
   const [productos, setProductos] = useState([]);
@@ -73,25 +74,33 @@ function Tienda() {
       navigate("/login");
       return;
     }
-
+  
     if (role === "admin") {
       alert("Los administradores no pueden agregar productos al carrito.");
       return;
     }
-
+  
     const precio = Number(producto.precio);
     let storedCart = JSON.parse(localStorage.getItem("cart")) || [];
     const existingProduct = storedCart.find((item) => item.id === producto.id);
-
+  
     if (existingProduct) {
       existingProduct.quantity += 1;
     } else {
       storedCart.push({ ...producto, price: precio, quantity: 1 });
     }
-
+  
     localStorage.setItem("cart", JSON.stringify(storedCart));
-    alert("Producto agregado al carrito");
+  
+    Swal.fire({
+      icon: 'success',
+      title: '¡Producto agregado!',
+      text: `"${producto.nombre}" se ha añadido al carrito.`,
+      showConfirmButton: false,
+      timer: 1500,
+    });
   };
+  
 
   const categorias = useMemo(() => {
     return [
