@@ -193,6 +193,16 @@ function Tienda() {
                       Agregar al carrito
                     </button>
                   )}
+
+                  {/* Botón "Ver Detalles" solo para usuarios no admin */}
+                  {role !== "admin" && (
+                    <button
+                      onClick={() => navigate(`/products/${producto.id}`)} // Redirige a la página de detalles del producto
+                      className="btn btn-info mt-2"
+                    >
+                      Ver detalles
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

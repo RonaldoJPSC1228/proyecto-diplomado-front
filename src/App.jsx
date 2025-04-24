@@ -103,7 +103,7 @@ function App() {
               }
             />
             <Route
-              path="/order"
+              path="/order/:orderId"
               element={
                 <PrivateRoute>
                   <Order /> {/* Solo usuarios logueados pueden ver la vista despues de haber hecho check */}

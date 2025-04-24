@@ -115,7 +115,7 @@ function Navbar() {
             {/* Mostrar carrito solo si el usuario está logueado y no es admin, y no está en la vista /cart */}
             {role !== null && role !== "admin" && location.pathname !== "/cart" && (
               <li className="nav-item">
-                <Link className="nav-link" to="/cart">
+                <Link className="nav-link" to="/cart">Carrito 
                   <i className="fas fa-cart-plus"></i>
                   {/* Mostrar el contador de artículos si el carrito no está vacío */}
                   {totalItems > 0 && (
