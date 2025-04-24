@@ -102,6 +102,12 @@ function Navbar() {
                 <li className="nav-item">
                   <Link className="nav-link" to="/products">Productos <i className="fas fa-box"></i></Link>
                 </li>
+                <li className="nav-item">
+                  <Link className="nav-link" to="/list-users">Usuarios <i className="fas fa-user-group"></i></Link>
+                </li>
+                <li className="nav-item">
+                  <Link className="nav-link" to="/orders">Ordenes <i className="fas fa-file"></i></Link>
+                </li>
               </>
             )}
 

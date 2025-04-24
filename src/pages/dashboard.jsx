@@ -116,27 +116,27 @@ function Dashboard() {
 
           {/* Stats Cards */}
           <div className="row mb-4">
-            <div className="col-md-6 mb-4">
+            <div className="col-md-4 mb-4">
               <div className="card p-4 shadow-sm text-center">
                 <FaBox size={40} color="#4CAF50" />
                 <h5>Productos</h5>
                 <p>{stats.products}</p>
               </div>
             </div>
-            <div className="col-md-6 mb-4">
+            <div className="col-md-4 mb-4">
               <div className="card p-4 shadow-sm text-center">
                 <FaUsers size={40} color="#2196F3" />
                 <h5>Clientes</h5>
                 <p>{stats.users}</p>
               </div>
             </div>
-            {/* <div className="col-md-4 mb-4">
+            <div className="col-md-4 mb-4">
               <div className="card p-4 shadow-sm text-center">
                 <FaShoppingCart size={40} color="#FF5722" />
                 <h5>Pedidos</h5>
                 <p>{stats.orders}</p>
               </div>
-            </div> */}
+            </div>
           </div>
 
           {/* Stats Chart */}

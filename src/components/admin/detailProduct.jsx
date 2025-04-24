@@ -99,6 +99,10 @@ const DetailProduct = () => {
                 Descuento: {product.descuento ? `${product.descuento}%` : "N/A"}
               </p>
 
+              <p>
+                Opciones de Compra: Tarjeta, Paypal, Efectivo
+              </p>
+
               {/* Solo mostrar el estado si el usuario es admin */}
               {userRole === "admin" && (
                 <p className="text-warning">Estado: {product.estado}</p>

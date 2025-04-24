@@ -23,9 +23,11 @@ import Cart from "./pages/cart";
 
 import NotFound from "./pages/notFound";
 import EditProduct from "./components/admin/editProduct";
-import Tienda from './pages/tienda';
+import Tienda from "./pages/tienda";
 import Checkout from "./pages/checkout";
 import Order from "./pages/order";
+import AdminOrders from "./components/admin/adminOrders";
+import AdminUsers from "./components/admin/adminUsers";
 
 function App() {
   return (
@@ -39,11 +41,11 @@ function App() {
         {/* El main ocupa el espacio restante y asegura que el footer esté abajo */}
         <div className="flex-grow-1">
           <Routes>
-            <Route path="/" element={<Home />} /> {/* Muestra los productos destacados y normales */}
+            <Route path="/" element={<Home />} />{" "}
+            {/* Muestra los productos destacados y normales */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/tienda" element={<Tienda />} />
-
             {/* Admin Routes */}
             <Route
               path="/dashboard"
@@ -73,7 +75,7 @@ function App() {
               path="/products/:id"
               element={
                 // <AdminRoute>
-                  <DetailProduct />
+                <DetailProduct />
                 // </AdminRoute>
               }
             />
@@ -85,7 +87,22 @@ function App() {
                 </AdminRoute>
               }
             />
-
+            <Route
+              path="/orders"
+              element={
+                <AdminRoute>
+                  <AdminOrders /> {/* Admin puede ver compras */}
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/list-users"
+              element={
+                <AdminRoute>
+                  <AdminUsers /> {/* Admin puede ver usuarios */}
+                </AdminRoute>
+              }
+            />
             <Route
               path="/cart"
               element={
@@ -98,7 +115,8 @@ function App() {
               path="/checkout"
               element={
                 <PrivateRoute>
-                  <Checkout /> {/* Solo usuarios logueados pueden hacer check del carrito */}
+                  <Checkout />{" "}
+                  {/* Solo usuarios logueados pueden hacer check del carrito */}
                 </PrivateRoute>
               }
             />
@@ -106,11 +124,11 @@ function App() {
               path="/order/:orderId"
               element={
                 <PrivateRoute>
-                  <Order /> {/* Solo usuarios logueados pueden ver la vista despues de haber hecho check */}
+                  <Order />{" "}
+                  {/* Solo usuarios logueados pueden ver la vista despues de haber hecho check */}
                 </PrivateRoute>
               }
             />
-
             <Route path="*" element={<NotFound />} /> {/* Ruta no encontrada */}
           </Routes>
         </div>
