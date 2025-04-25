@@ -25,7 +25,7 @@ function Register({ onSwitch }) {
       await setDoc(doc(db, "users", user.uid), {
         nombre: name,
         email: user.email,
-        rol: "usuario"
+        rol: "user"
       });
 
       Swal.fire("Cuenta creada", "Tu cuenta ha sido registrada", "success");
